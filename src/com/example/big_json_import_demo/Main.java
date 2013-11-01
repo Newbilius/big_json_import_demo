@@ -20,20 +20,25 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class Main extends Activity {
-    String url="http://siteszone.ru//test_data/small.json";
-    //String url="http://siteszone.ru//test_data/big.json";
+    String UrlSmall="http://siteszone.ru//test_data/small.json";
+    String UrlBig="http://siteszone.ru//test_data/big.json";
 
     public static GsonBuilder gsonBuilder = new GsonBuilder();
     public static com.google.gson.Gson Gson = gsonBuilder.create();
 
     public class LoadData extends AsyncTask<Void, Void, Void> {
 
+        String _url="";
+
+        public LoadData(String url){
+            _url=url;
+        }
+
         @Override
         protected Void doInBackground(Void... voids) {
-            Log.d("333");
             //скачивание данных
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(url);
+            HttpPost httppost = new HttpPost(_url);
             String responseString=null;
 
             HttpResponse response = null;
@@ -46,7 +51,7 @@ public class Main extends Activity {
 
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
                 StringBuilder responseBuilder= new StringBuilder();
-                char[] buff = new char[1024*32];
+                char[] buff = new char[1024*512];
                 int read;
                 while((read = bufferedReader.read(buff)) != -1) {
                     responseBuilder.append(buff, 0, read) ;
@@ -79,9 +84,10 @@ public class Main extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        Log.d("111");
-        new LoadData().execute();
-        Log.d("2222");
+        //успешно скачивает
+        //new LoadData(UrlSmall).execute();
+        //падает, слишком большой
+        new LoadData(UrlBig).execute();
     }
 
     public String PrepareSize(long size){
