@@ -5,8 +5,6 @@ import android.net.http.AndroidHttpClient;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -14,13 +12,13 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.*;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 
 public class Main extends Activity {
-    String UrlSmall="http://siteszone.ru/test_data/small.json";//7 килобайт
-    String UrlBig="http://siteszone.ru/test_data/big.json";    //5.79 мб.
-    String UrlVeryBig="http://siteszone.ru/test_data/very_big.json";    //13.3 мб.
+    public static final String baseUrl=""; //вписываем сюда базовый адрес
+
+    public static final String UrlSmall=baseUrl+"small.json";//7 килобайт
+    public static final String UrlBig=baseUrl+"big.json";    //5.79 мб.
+    public static final String UrlVeryBig=baseUrl+"very_big.json";    //13.3 мб.
 
     public static GsonBuilder gsonBuilder = new GsonBuilder();
     public static com.google.gson.Gson Gson = gsonBuilder.create();
@@ -153,16 +151,16 @@ public class Main extends Activity {
 
         cache_dir = this.getExternalCacheDir();
 
-        //успешно скачивает
+        //успешно скачивает маленький
         //new LoadData(UrlSmall).execute();
 
-        //падает, слишком большой
+        //фатально падает, слишком большой
         //new LoadData(UrlBig).execute();
 
-        //нормально качает большой
+        //нормально качает, большой
         //new LoadBigData(UrlBig).execute();
 
-        //нормально качает очень большой
+        //нормально качает, очень большой
         new LoadBigData(UrlVeryBig).execute();
     }
 
