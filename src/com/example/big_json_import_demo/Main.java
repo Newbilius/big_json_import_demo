@@ -22,7 +22,6 @@ public class Main extends Activity {
 
     public static GsonBuilder gsonBuilder = new GsonBuilder();
     public static com.google.gson.Gson Gson = gsonBuilder.create();
-    public File cache_dir;
 
     public class LoadData extends AsyncTask<Void, Void, Void> {
 
@@ -76,12 +75,14 @@ public class Main extends Activity {
         }
     }
 
-    public class LoadBigData extends AsyncTask<Void, Void, Void> {
+    public class LoadBigDataTmpFile extends AsyncTask<Void, Void, Void> {
 
         String _url="";
+        File cache_dir;
 
-        public LoadBigData(String url){
+        public LoadBigDataTmpFile(String url){
             _url=url;
+            cache_dir = getExternalCacheDir();
         }
 
         @Override
@@ -122,10 +123,11 @@ public class Main extends Activity {
                 bufferedWriter.flush();
                 fileOutputStream.close();
 
-
+                Log.d("начали парсинг...");
                 FileInputStream fileInputStream=new FileInputStream(file);
                 InputStreamReader reader = new InputStreamReader(fileInputStream);
                 HumorItems list= Gson.fromJson(reader,HumorItems.class);
+                Log.d("закончили парсинг.");
 
                     //тестовый вывод
                     for (HumorItem message:list.Items){
@@ -144,12 +146,53 @@ public class Main extends Activity {
         }
     }
 
+    public class LoadBigData extends AsyncTask<Void, Void, Void> {
+
+        String _url="";
+
+        public LoadBigData(String url){
+            _url=url;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            //скачивание данных
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(_url);
+
+            HttpResponse response = null;
+            try {
+                //скачивание данных
+                response = httpclient.execute(httppost);
+
+                HttpEntity httpEntity=response.getEntity();
+                InputStream stream = AndroidHttpClient.getUngzippedContent(httpEntity);
+
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
+                InputStreamReader reader = new InputStreamReader(stream);
+                HumorItems list= Gson.fromJson(reader,HumorItems.class);
+
+                //тестовый вывод
+                for (HumorItem message:list.Items){
+                    Log.d("Текст: "+message.text);
+                    Log.d("Ссылка: "+message.url);
+                    Log.d("-------------------");
+                }
+                Log.d("ВСЕГО СКАЧАНО "+list.Items.size());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e("ошибка "+e.getMessage());
+            }
+
+            return null;
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-        cache_dir = this.getExternalCacheDir();
 
         //успешно скачивает маленький
         //new LoadData(UrlSmall).execute();
@@ -159,9 +202,11 @@ public class Main extends Activity {
 
         //нормально качает, большой
         //new LoadBigData(UrlBig).execute();
+        //new LoadBigDataTmpFile(UrlBig).execute();
 
         //нормально качает, очень большой
-        new LoadBigData(UrlVeryBig).execute();
+        new LoadBigData(UrlBig).execute();
+        //new LoadBigDataTmpFile(UrlVeryBig).execute();
     }
 
     public String PrepareSize(long size){
