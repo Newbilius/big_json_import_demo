@@ -189,6 +189,56 @@ public class Main extends Activity {
         }
     }
 
+    public class LoadBigDataPublish extends AsyncTask<Void, Void, Void> {
+
+        String _url="";
+
+        public LoadBigDataPublish(String url){
+            _url=url;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            //скачивание данных
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(_url);
+
+            HttpResponse response = null;
+            try {
+                //скачивание данных
+                response = httpclient.execute(httppost);
+
+                HttpEntity httpEntity=response.getEntity();
+                InputStream stream = new InputStreamDecorator<InputStream>(AndroidHttpClient.getUngzippedContent(httpEntity)) {
+                    @Override
+                    protected void publishByteReaded(long amount) {
+                        super.publishByteReaded(amount);
+                        // Обработчик прогресса чтения файла
+                        Log.d("скачано "+Main.PrepareSize(bytesReadedCount));
+                    }
+                };
+
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream));
+                InputStreamReader reader = new InputStreamReader(stream);
+                HumorItems list= Gson.fromJson(reader,HumorItems.class);
+
+                //тестовый вывод
+                for (HumorItem message:list.Items){
+                    Log.d("Текст: "+message.text);
+                    Log.d("Ссылка: "+message.url);
+                    Log.d("-------------------");
+                }
+                Log.d("ВСЕГО СКАЧАНО "+list.Items.size());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e("ошибка "+e.getMessage());
+            }
+
+            return null;
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -205,11 +255,12 @@ public class Main extends Activity {
         //new LoadBigDataTmpFile(UrlBig).execute();
 
         //нормально качает, очень большой
-        new LoadBigData(UrlBig).execute();
-        //new LoadBigDataTmpFile(UrlVeryBig).execute();
+        //new LoadBigData(UrlBig).execute();    //без временного файла, парсинг в реальном времени, без сообщения процесса
+        //new LoadBigDataTmpFile(UrlVeryBig).execute(); //с сохранением во временный файл и сообщением процесса скачивания
+        new LoadBigDataPublish(UrlBig).execute(); //без временного файла, парсинг в реальном времени и с сообщением процесса
     }
 
-    public String PrepareSize(long size){
+    public static String PrepareSize(long size){
         if (size<1024){
             return size+" б.";
         }else
